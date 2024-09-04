@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow.keras import layers, losses
 from tensorflow.keras.models import Model
 import scipy.signal as sig
-import helper
+import etc.helper as helper
 import sys
 import numpy as np
 import importlib

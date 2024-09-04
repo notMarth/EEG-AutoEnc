@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 import scipy.signal as sig
-import helper
+import etc.helper as helper
 import numpy as np
 from copy import deepcopy
 from pathlib import Path

@@ -3,7 +3,7 @@ from tensorflow.keras import layers, losses
 from tensorflow.keras.models import Model
 from sklearn.preprocessing import StandardScaler
 import numpy as np
-import helper
+import etc.helper as helper
 import scipy.signal as sig
 from matplotlib import pyplot as plt
 
