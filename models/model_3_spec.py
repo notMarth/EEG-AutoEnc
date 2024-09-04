@@ -13,7 +13,7 @@ SPEC = 100
 class Autoencoder(Model):
     def __init__(self, latent_dim, train_size=0.7, test_size=0.3, epochs=100, random_state=5):
         super(Autoencoder, self).__init__()
-        self.name = "spectral_model_4"
+        self.name = "spectral_model_3"
 
         self.latent_dim = latent_dim
         self.input_shape = ((0,0,0))
@@ -36,7 +36,7 @@ class Autoencoder(Model):
         return reconstructions, loss
     
     def plot_losses(self):
-        test_ind = 0
+        test_ind = 1
         plt.figure()
         plt.title(f"Model Loss for Epochs = {self.epochs} and Latent Space = {self.latent_dim}")
         plt.plot(self.history.history["loss"], label="Training Loss")
@@ -66,8 +66,7 @@ class Autoencoder(Model):
         # axs[2].plot(true_Y[0], label="True", alpha=0.5, color="Green")
         # axs[2].set_title("True Audio Envelope vs Reconstructed")
         fig.legend()
-        
-        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png")
+        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png", dpi=300)
 
         self.test_loss =  np.average(loss, axis=0)[0]
 
@@ -104,40 +103,53 @@ class Autoencoder(Model):
 
         self.spectro = spectro
 
-        
-    def encoder(self, x) -> list:
-        out = []
-        
-        for i in range(x.shape[-1]):
-            out.append(self.encoder_unit(x[:,:,i]).numpy())
-        return out
-
-    def decoder(self, x) -> np.ndarray:
-        out = np.array(x[0])
-        for i in x[1:]:
-            np.concatenate((out, i), axis=0)
-        return self.decoder_unit(out)
-
 
     def train(self):
-        #self.X_train = self.X_train.reshape(self.X_train.shape[0], self.X_train.shape[1], self.X_train.shape[2])
-        self.input_shape = self.X_train.shape[1:-1]
+        self.X_train = self.X_train.reshape(self.X_train.shape[0], self.X_train.shape[1], self.X_train.shape[2], 1)
+        self.input_shape = self.X_train.shape[1:]
         self.output_shape = self.Y_train.shape[1:]
 
-        self.encoder_unit = tf.keras.Sequential([
+        self.encoder = tf.keras.Sequential([
             layers.Input(shape=self.input_shape),
-            layers.Flatten(),
-            layers.Dense(self.latent_dim),
+            layers.Conv2D(16, (3,3), strides=(2,2)),
+            layers.BatchNormalization(),
+            layers.LeakyReLU(0.10),
+            layers.Dropout(0.20),
+            layers.Conv2D(8, (3,3), strides=(1,1)),
+            layers.BatchNormalization(),
+            layers.LeakyReLU(0.10),
+            layers.Dropout(0.20),
+
+
+            layers.Conv2D(32, (3,3), strides=(2,2)),
+            layers.BatchNormalization(),
+            layers.LeakyReLU(0.10),
+            layers.Dropout(0.20),
+            layers.Conv2D(16, (3,3), strides=(1,1)),
+            layers.BatchNormalization(),
+            layers.LeakyReLU(0.10),
+            layers.Dropout(0.20),
+            layers.Reshape((1246, 4*16)),
+            layers.LSTM(self.latent_dim, recurrent_dropout=0.20),
         ])
 
-        self.decoder_unit = tf.keras.Sequential([
-            layers.Dense(self.output_shape[0]*self.output_shape[1]),
-            layers.Dropout(0.3),
-            layers.Reshape(self.output_shape),
+        self.decoder = tf.keras.Sequential([
+            layers.Dense(2*3),
+            layers.Dropout(0.25),
+            layers.Reshape((3, 2, 1)),
+            layers.Conv2DTranspose(5, 3, strides=2, padding='same', activation='sigmoid'),
+            layers.Dropout(0.25),
+            #layers.Reshape((14, 3, 1)),
+            layers.Conv2DTranspose(7, 3, strides=2, padding='same', activation='sigmoid'),
+            layers.Dropout(0.25),
+            layers.Conv2DTranspose(11, 3, strides=2, padding='same', activation='sigmoid'),
+            #layers.Conv2D(7, (3,3), strides=2, padding='same', activation='sigmoid'),
+            layers.Dropout(0.25),
+            #layers.Reshape((self.output_shape[0], self.output_shape[1]*2)),
+            #layers.MaxPooling1D(),
+            #layers.Dense(self.output_shape[1]),
+            layers.Reshape(self.output_shape)
         ])
-
-        tf.config.run_functions_eagerly(True)
-
 
         self.compile(optimizer="Adam", loss=losses.MeanSquaredError())
 
