@@ -1,10 +1,7 @@
 #imports
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
-from tensorflow.keras import layers, losses
-from tensorflow.keras.models import Model
 import scipy.signal as sig
 import etc.helper as helper
 import sys
@@ -15,7 +12,6 @@ from pathlib import Path
 
 from mtrf.model import TRF
 from mtrf.stats import neg_mse
-from mtrf.stats import crossval
 
 """ Run user_provided models with selected EEG and audio data. Generate plots
 based on results.
@@ -48,8 +44,8 @@ if __name__ == "__main__":
     #Subject numbers and experiment
     sub = "sub-28"
     exp = "fixthemix"
-    eeg_file = f"../eegprep/{sub}/{sub}_task-{exp}_eegprep.vhdr"
-    audio_file = f'../audio/{sub}/{sub}_task-{exp}_aud.flac'
+    eeg_file = f"data/eegprep{sub}/{sub}_task-{exp}_eegprep.vhdr"
+    audio_file = f'data/audio/{sub}/{sub}_task-{exp}_aud.flac'
     #set sample rate
     sample_rate = 250
 
