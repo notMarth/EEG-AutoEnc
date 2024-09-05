@@ -23,6 +23,7 @@ class Autoencoder(Model):
         self.random_state = random_state
 
 
+    #encode and decode
     def call(self, x):
         encoded = self.encoder(x)
         decoded = self.decoder(encoded)
@@ -33,6 +34,7 @@ class Autoencoder(Model):
         loss = losses.mse(reconstructions, labels)
         return reconstructions, loss
     
+    #plot training losses and calculate test loss
     def plot_losses(self):
         plt.figure()
         plt.title(f"Model Loss for Epochs = {self.epochs} and Latent Space = {self.latent_dim}")
@@ -50,8 +52,6 @@ class Autoencoder(Model):
         display_Y = display_scale.transform(model_Y)
         pred, loss = self.predict(self.X_test, self.Y_test)
 
-
-        
         for i in range(4):
              for j in range(8):
                 plt.plot(display_Y[:,i+j], label="Reconstructed", color='red')
@@ -63,7 +63,7 @@ class Autoencoder(Model):
 
         self.test_loss = np.average(loss, axis=0)[0]
 
-
+    #load the data in an preprocess it
     def process_data(self, eeg, audio, sample_rate, mode, segments, seconds):
         #calculate audio envelope
         audio = np.abs(sig.hilbert(audio.T))
@@ -80,13 +80,17 @@ class Autoencoder(Model):
                             seconds=seconds)
         
 
+    #train the model
     def train(self):
+        
+        #reshape the data to the shape needed for tensorfow
         self.X_train = self.X_train.reshape(self.X_train.shape[0], self.X_train.shape[-1], 1)
         self.X_val = self.X_val.reshape(self.X_val.shape[0], self.X_val.shape[-1], 1)
         self.X_test = self.X_test.reshape(self.X_test.shape[0], self.X_test.shape[-1], 1)
         self.input_shape = self.X_train.shape[1:]
         self.output_shape = self.Y_train.shape[1:]
 
+        #define encoder here
         self.encoder = tf.keras.Sequential([
             layers.Input(self.input_shape),
             layers.Conv1D(self.input_shape[-2]*3//4, 3, strides=2, padding='same', activation='relu'),
@@ -102,6 +106,7 @@ class Autoencoder(Model):
             layers.Dense(self.latent_dim),
         ])
 
+        #define decoder here
         self.decoder = tf.keras.Sequential([
             layers.Reshape((1, self.latent_dim)),
             layers.Conv1DTranspose(5, 4, strides=5, padding='same', activation='relu'),
@@ -116,8 +121,8 @@ class Autoencoder(Model):
             layers.Reshape(self.output_shape)
         ])
 
+        #compile and train
         self.compile(optimizer="Adam", loss=losses.MeanSquaredError())
-
 
         self.history = self.fit(self.X_train, self.Y_train,
                 epochs=self.epochs,

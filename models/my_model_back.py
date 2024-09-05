@@ -49,7 +49,7 @@ class Autoencoder(Model):
         display_scale = StandardScaler().fit(true_Y)
         display_Y = display_scale.transform(model_Y)
         #true_Y = display_scale.transform(true_Y)
-        pred, loss = self.predict(self.X_test, self.Y_test)
+        _, loss = self.predict(self.X_test, self.Y_test)
 
         for i in range(4):
             for j in range(8):

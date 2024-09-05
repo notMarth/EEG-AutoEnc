@@ -49,16 +49,19 @@ class Autoencoder(Model):
         display_scale = StandardScaler().fit(true_Y)
         display_Y = display_scale.transform(model_Y)
         #true_Y = display_scale.transform(true_Y)
-        pred, loss = self.predict(self.X_test, self.Y_test)
+        _, loss = self.predict(self.X_test, self.Y_test)
 
         fig, axs = plt.subplots(3,1)
         axs[0].plot(display_Y[0])
         axs[0].set_title(f"Reconstructed Audio Envelope (Latent Space = {self.latent_dim})")
+        
         axs[1].plot(true_Y[0])
         axs[1].set_title("True Audio Envelope")
+        
         axs[2].plot(-1*display_Y[0], color="Red", label="Reconstructed (Flipped)")
         axs[2].plot(true_Y[0], label="True", alpha=0.5, color="Green")
         axs[2].set_title("True Audio Envelope vs Reconstructed")
+        
         fig.legend()
         
         plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png", dpi=300)

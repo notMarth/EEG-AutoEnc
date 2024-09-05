@@ -22,19 +22,19 @@ class Autoencoder(Model):
         self.epochs = epochs
         self.random_state = random_state
 
+    #one encoder for each EEG channel
     def encoder(self, x) -> list:
         out = []
-        
         for i in range(x.shape[-1]):
             out.append(self.encoder_unit(x[:,:,i]).numpy())
         return out
 
+    #one decoder
     def decoder(self, x) -> np.ndarray:
         out = np.array(x[0])
         for i in x[1:]:
             np.concatenate((out, i), axis=0)
         return self.decoder_unit(out)
-
 
     def call(self, x):
         encoded = self.encoder(x)
@@ -47,6 +47,7 @@ class Autoencoder(Model):
         return reconstructions, loss
     
     def plot_losses(self):
+        
         plt.figure()
         plt.title(f"Model Loss for Epochs = {self.epochs} and Latent Space = {self.latent_dim}")
         plt.plot(self.history.history["loss"], label="Training Loss")
@@ -62,16 +63,19 @@ class Autoencoder(Model):
         display_scale = StandardScaler().fit(true_Y)
         display_Y = display_scale.transform(model_Y)
         #true_Y = display_scale.transform(true_Y)
-        pred, loss = self.predict(self.X_test, self.Y_test)
+        _, loss = self.predict(self.X_test, self.Y_test)
 
         fig, axs = plt.subplots(3,1)
         axs[0].plot(display_Y[0])
         axs[0].set_title(f"Reconstructed Audio Envelope (Latent Space = {self.latent_dim})")
+        
         axs[1].plot(true_Y[0])
         axs[1].set_title("True Audio Envelope")
+        
         axs[2].plot(-1*display_Y[0], color="Red", label="Reconstructed (Flipped)")
         axs[2].plot(true_Y[0], label="True", alpha=0.5, color="Green")
         axs[2].set_title("True Audio Envelope vs Reconstructed")
+        
         fig.legend()
         
         plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png", dpi=300)

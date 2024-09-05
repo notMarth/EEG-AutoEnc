@@ -56,18 +56,18 @@ class Autoencoder(Model):
         display_Y = display_scale.transform(model_Y)
         #true_Y = display_scale.transform(true_Y)
         display_Y = np.abs(model_Y)
-        pred, loss = self.predict(self.X_test, [np.real(self.Y_test), np.imag(self.Y_test)])
+        _, loss = self.predict(self.X_test, [np.real(self.Y_test), np.imag(self.Y_test)])
 
         fig, axs = plt.subplots(2,1)
-        im1 = axs[0].imshow(display_Y, origin='lower', aspect='auto',
-                 extent=self.spectro.extent(self.output_shape[0]), cmap='inferno')
+        
+        axs[0].imshow(display_Y, origin='lower', aspect='auto',
+            extent=self.spectro.extent(self.output_shape[0]), cmap='inferno')
         axs[0].set_title(f"Reconstructed Audio Spectrogram (Latent Space = {self.latent_dim})")
-        im1 = axs[1].imshow(true_Y, origin='lower', aspect='auto',
-                 extent=self.spectro.extent(self.output_shape[0]), cmap='inferno')		
+        
+        axs[1].imshow(true_Y, origin='lower', aspect='auto',
+            extent=self.spectro.extent(self.output_shape[0]), cmap='inferno')		
         axs[1].set_title("True Audio Spectrogram")
-        # axs[2].plot(-1*display_Y[0], color="Red", label="Reconstructed")
-        # axs[2].plot(true_Y[0], label="True", alpha=0.5, color="Green")
-        # axs[2].set_title("True Audio Envelope vs Reconstructed")
+       
         fig.legend()
         
         plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png", dpi=300)
@@ -94,16 +94,10 @@ class Autoencoder(Model):
         window = sig.windows.gaussian(30, std=5, sym=True)
         spectro = sig.ShortTimeFFT(win=window, hop=19, fs=sample_rate, scale_to='magnitude')
         self.Y_train = spectro.stft(self.Y_train)
-        # for i in range(len(self.Y_train)):
-        # 	self.Y_train[i] = audio_scaler.fit_transform(self.Y_train[i])
-
-        #NOTE: Y_TEST RETAINS COMPLEX VALUES
+        
         self.Y_test = spectro.stft(self.Y_test)
-        # for i in range(len(self.Y_test)):
-        # 	self.Y_test[i] = audio_scaler.fit_transform(self.Y_test[i])
+        
         self.Y_val = spectro.stft(self.Y_val)
-        # for i in range(len(self.Y_val)):
-        # 	self.Y_val[i] = audio_scaler.fit_transform(self.Y_val[i])
 
         self.spectro = spectro
 

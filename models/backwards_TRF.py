@@ -11,11 +11,15 @@ from mtrf.model import TRF
 from mtrf.stats import neg_mse
 from mtrf.stats import crossval
 
-class BackwardsTRF:
+#model definition for Backwards Modeling (TRF approach)
+class BackwardsModel:
     
     def __init__(self, regularization=5, train_size=0.7, test_size=0.3, epochs=100, random_state=5):
         
-        self.name = "Backwards TRF"
+        #These are used during function calls
+        
+        #name is used in plotting as the name for the model
+        self.name = "Backwards Modeling"
         self.train_size = train_size
         self.test_size = test_size
         self.epochs = epochs
