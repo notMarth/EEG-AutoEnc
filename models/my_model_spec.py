@@ -13,11 +13,11 @@ SPEC = 100
 class Autoencoder(Model):
     def __init__(self, latent_dim, train_size=0.7, test_size=0.3, epochs=100, random_state=5):
         super(Autoencoder, self).__init__()
-        self.name = "custom_spectral_model"
+        self.model_name = "custom_spectral_model"
 
         self.latent_dim = latent_dim
-        self.input_shape = ((0,0,0))
-        self.output_shape = ((0,0,0))
+        self.in_shape = ((0,0,0))
+        self.out_shape = ((0,0,0))
 
         self.train_size = train_size
         self.test_size = test_size
@@ -44,7 +44,7 @@ class Autoencoder(Model):
         plt.plot(self.history.history["loss"], label="Training Loss")
         plt.plot(self.history.history["val_loss"], label="Validation Loss")
         plt.legend()
-        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Loss.png", dpi=300)
+        plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Loss.png", dpi=300)
 
         X_test = np.array(self.X_test)
         Y_test = np.array(self.Y_test)
@@ -61,18 +61,20 @@ class Autoencoder(Model):
         fig, axs = plt.subplots(2,1)
         
         axs[0].imshow(display_Y, origin='lower', aspect='auto',
-            extent=self.spectro.extent(self.output_shape[0]), cmap='inferno')
+            extent=self.spectro.extent(self.out_shape[0]), cmap='inferno')
         axs[0].set_title(f"Reconstructed Audio Spectrogram (Latent Space = {self.latent_dim})")
         
         axs[1].imshow(true_Y, origin='lower', aspect='auto',
-            extent=self.spectro.extent(self.output_shape[0]), cmap='inferno')		
+            extent=self.spectro.extent(self.out_shape[0]), cmap='inferno')		
         axs[1].set_title("True Audio Spectrogram")
        
         fig.legend()
         
-        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png", dpi=300)
-
-        self.test_loss =  np.average(loss, axis=0)[0]
+        plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Recon.png", dpi=300)
+        
+        self.test_loss =  np.average(loss)
+        print(loss)
+        print(self.test_loss)
 
 
     def process_data(self, eeg, audio, sample_rate, mode, segments, seconds):
@@ -104,8 +106,8 @@ class Autoencoder(Model):
 
     def train(self):
         self.X_train = self.X_train.reshape(self.X_train.shape[0], self.X_train.shape[1], self.X_train.shape[2], 1)
-        self.input_shape = self.X_train.shape[1:]
-        self.output_shape = self.Y_train.shape[1:]
+        self.in_shape = self.X_train.shape[1:]
+        self.out_shape = self.Y_train.shape[1:]
 
         self.Y_train_real = np.real(self.Y_train)
         self.Y_train_imag = np.imag(self.Y_train)
@@ -114,7 +116,7 @@ class Autoencoder(Model):
         self.Y_val_imag = np.imag(self.Y_val)
 
         self.encoder_real = tf.keras.Sequential([
-            layers.Input(shape=self.input_shape),
+            layers.Input(shape=self.in_shape),
             layers.Conv2D(16, (3,3), strides=2, padding='same', activation='relu'),
             layers.MaxPooling2D(),
             layers.Dropout(0.25),
@@ -132,7 +134,7 @@ class Autoencoder(Model):
         ])
 
         self.encoder_imag = tf.keras.Sequential([
-            layers.Input(shape=self.input_shape),
+            layers.Input(shape=self.in_shape),
             layers.Conv2D(16, (3,3), strides=2, padding='same', activation='relu'),
             layers.MaxPooling2D(),
             layers.Dropout(0.25),
@@ -161,10 +163,10 @@ class Autoencoder(Model):
             layers.Conv2DTranspose(11, 3, strides=2, padding='same', activation='sigmoid'),
             #layers.Conv2D(7, (3,3), strides=2, padding='same', activation='sigmoid'),
             layers.Dropout(0.25),
-            #layers.Reshape((self.output_shape[0], self.output_shape[1]*2)),
+            #layers.Reshape((self.out_shape[0], self.out_shape[1]*2)),
             #layers.MaxPooling1D(),
-            #layers.Dense(self.output_shape[1]),
-            layers.Reshape(self.output_shape)
+            #layers.Dense(self.out_shape[1]),
+            layers.Reshape(self.out_shape)
         ])
 
         self.decoder_imag = tf.keras.Sequential([
@@ -179,10 +181,10 @@ class Autoencoder(Model):
             layers.Conv2DTranspose(11, 3, strides=2, padding='same', activation='sigmoid'),
             #layers.Conv2D(7, (3,3), strides=2, padding='same', activation='sigmoid'),
             layers.Dropout(0.25),
-            #layers.Reshape((self.output_shape[0], self.output_shape[1]*2)),
+            #layers.Reshape((self.out_shape[0], self.out_shape[1]*2)),
             #layers.MaxPooling1D(),
-            #layers.Dense(self.output_shape[1]),
-            layers.Reshape(self.output_shape)
+            #layers.Dense(self.out_shape[1]),
+            layers.Reshape(self.out_shape)
         ])
 
         self.compile(optimizer="Adam", loss=losses.MeanSquaredError())

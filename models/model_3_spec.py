@@ -16,8 +16,8 @@ class Autoencoder(Model):
         self.name = "spectral_model_3"
 
         self.latent_dim = latent_dim
-        self.input_shape = ((0,0,0))
-        self.output_shape = ((0,0,0))
+        self.in_shape = ((0,0,0))
+        self.out_shape = ((0,0,0))
 
         self.train_size = train_size
         self.test_size = test_size
@@ -57,11 +57,11 @@ class Autoencoder(Model):
 
         fig, axs = plt.subplots(2,1)
         axs[0].imshow(display_Y, origin='lower', aspect='auto', 
-            extent=self.spectro.extent(self.output_shape[0]), cmap='viridis')
+            extent=self.spectro.extent(self.out_shape[0]), cmap='viridis')
         axs[0].set_title(f"Reconstructed Audio Spectrogram (Latent Space = {self.latent_dim})")
         
         axs[1].imshow(true_Y, origin='lower', aspect='auto',
-            extent=self.spectro.extent(self.output_shape[0]), cmap='viridis')		
+            extent=self.spectro.extent(self.out_shape[0]), cmap='viridis')		
         axs[1].set_title("True Audio Spectrogram")
         
         fig.legend()
@@ -99,11 +99,11 @@ class Autoencoder(Model):
 
     def train(self):
         self.X_train = self.X_train.reshape(self.X_train.shape[0], self.X_train.shape[1], self.X_train.shape[2], 1)
-        self.input_shape = self.X_train.shape[1:]
-        self.output_shape = self.Y_train.shape[1:]
+        self.in_shape = self.X_train.shape[1:]
+        self.out_shape = self.Y_train.shape[1:]
 
         self.encoder = tf.keras.Sequential([
-            layers.Input(shape=self.input_shape),
+            layers.Input(shape=self.in_shape),
             layers.Conv2D(16, (3,3), strides=(2,2)),
             layers.BatchNormalization(),
             layers.LeakyReLU(0.10),
@@ -138,10 +138,10 @@ class Autoencoder(Model):
             layers.Conv2DTranspose(11, 3, strides=2, padding='same', activation='sigmoid'),
             #layers.Conv2D(7, (3,3), strides=2, padding='same', activation='sigmoid'),
             layers.Dropout(0.25),
-            #layers.Reshape((self.output_shape[0], self.output_shape[1]*2)),
+            #layers.Reshape((self.out_shape[0], self.out_shape[1]*2)),
             #layers.MaxPooling1D(),
-            #layers.Dense(self.output_shape[1]),
-            layers.Reshape(self.output_shape)
+            #layers.Dense(self.out_shape[1]),
+            layers.Reshape(self.out_shape)
         ])
 
         self.compile(optimizer="Adam", loss=losses.MeanSquaredError())

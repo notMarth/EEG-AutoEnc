@@ -11,11 +11,11 @@ from matplotlib import pyplot as plt
 class Autoencoder(Model):
     def __init__(self, latent_dim, train_size=0.7, test_size=0.3, epochs=100, random_state=5):
         super(Autoencoder, self).__init__()
-        self.name = "model3"
+        self.model_name = "model3"
 
         self.latent_dim = latent_dim
-        self.input_shape = None
-        self.output_shape = None
+        self.in_shape = None
+        self.out_shape = None
 
         self.train_size = train_size
         self.test_size = test_size
@@ -39,7 +39,7 @@ class Autoencoder(Model):
         plt.plot(self.history.history["loss"], label="Training Loss")
         plt.plot(self.history.history["val_loss"], label="Validation Loss")
         plt.legend()
-        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Loss.png", dpi=300)
+        plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Loss.png", dpi=300)
 
         X_test = np.array(self.X_test)
         Y_test = np.array(self.Y_test)
@@ -64,7 +64,7 @@ class Autoencoder(Model):
         axs[2].set_title("True Audio Envelope vs Reconstructed")
         
         fig.legend()
-        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png", dpi=300)
+        plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Recon.png", dpi=300)
 
         self.test_loss = np.average(loss, axis=0)[0]
 
@@ -87,11 +87,11 @@ class Autoencoder(Model):
 
     def train(self):
         self.X_train = self.X_train.reshape(self.X_train.shape[0], self.X_train.shape[1], self.X_train.shape[2], 1)
-        self.input_shape = self.X_train.shape[1:]
-        self.output_shape = self.Y_train.shape[1:]
+        self.in_shape = self.X_train.shape[1:]
+        self.out_shape = self.Y_train.shape[1:]
 
         self.encoder = tf.keras.Sequential([
-            layers.Input(shape=self.input_shape),
+            layers.Input(shape=self.in_shape),
             layers.Conv2D(16, (3,3), strides=(2,2)),
             layers.BatchNormalization(),
             layers.LeakyReLU(0.10),
@@ -151,7 +151,7 @@ class Autoencoder(Model):
             # layers.LeakyReLU(0.10),
             # layers.Dropout(0.20),
 
-            layers.Reshape(self.output_shape)
+            layers.Reshape(self.out_shape)
         ])
 
         self.compile(optimizer="Adam", loss=losses.MeanSquaredError())

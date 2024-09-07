@@ -10,8 +10,6 @@ import importlib
 from copy import deepcopy
 from pathlib import Path
 
-from mtrf.model import TRF
-from mtrf.stats import neg_mse
 
 """ Run user_provided models with selected EEG and audio data. Generate plots
 based on results.
@@ -41,8 +39,8 @@ if __name__ == "__main__":
     #Subject numbers and experiment
     sub = "sub-28"
     exp = "fixthemix"
-    eeg_file = f"data/eegprep{sub}/{sub}_task-{exp}_eegprep.vhdr"
-    audio_file = f'data/audio/{sub}/{sub}_task-{exp}_aud.flac'
+    eeg_file = f"data/{sub}_task-{exp}_eegprep.vhdr"
+    audio_file = f'data/{sub}_task-{exp}_aud.flac'
     
     #set sample rate. This is the value that data gets resampled to
     sample_rate = 250
@@ -69,19 +67,20 @@ if __name__ == "__main__":
     for mod in sys.argv[1:-1]:
         #import model here
         print(f"MODEL {mod}\n")
-        model_lib = importlib.import_module(mod, '.')
+        model_lib = importlib.import_module(f'models.{mod}', '.')
         test_losses = []
 
         #Train on each latent space and then plot loss over epochs
         for latent in latents:
             print(f"LATENT SPACE {latent} FOR MODEL {mod}\n")
             model = model_lib.Autoencoder(latent, TRAIN_SIZE, TEST_SIZE, EPOCHS, RANDOM_STATE)
-            Path(f"figs/{model.name}").mkdir(parents=True, exist_ok=True)
+            Path(f"figs/{model.model_name}").mkdir(parents=True, exist_ok=True)
 
             model.process_data(deepcopy(eeg), deepcopy(audio), sample_rate, MODE, NUM_SEGMENTS, SECONDS)
             model.train()
             model.plot_losses()
-
+            plt.close()
+            
             test_losses.append(model.test_loss)
 
             #model.visualize_activations()
@@ -98,14 +97,17 @@ if __name__ == "__main__":
         #find the smallest loss and choose that as the best latent space for the model
         test_losses.sort()
         best_model_loss.append(test_losses[-1])
-        labels.append(model.name)
+        labels.append(model.model_name)
+        plt.close()
  
  
     #plot comparison of test loss for every model trained
     plt.figure()
     plt.title(f"Average Model Loss Over Test Data For Each Model (Best)")
+    print(labels, best_model_loss)
     plt.scatter(labels, best_model_loss)
     plt.xlabel("Model Name")
     plt.ylabel("Average MSE")
     plt.savefig("figs/Model_Comparison.png")
+    plt.close()
     

@@ -11,11 +11,11 @@ from matplotlib import pyplot as plt
 class Autoencoder(Model):
     def __init__(self, latent_dim, train_size=0.7, test_size=0.3, epochs=100, random_state=5):
         super(Autoencoder, self).__init__()
-        self.name = "custom_model_backwards"
+        self.model_name = "custom_model_backwards"
 
         self.latent_dim = latent_dim
-        self.input_shape = None
-        self.output_shape = None
+        self.in_shape = None
+        self.out_shape = None
 
         self.train_size = train_size
         self.test_size = test_size
@@ -39,7 +39,7 @@ class Autoencoder(Model):
         plt.plot(self.history.history["loss"], label="Training Loss")
         plt.plot(self.history.history["val_loss"], label="Validation Loss")
         plt.legend()
-        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Loss.png", dpi=300)
+        plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Loss.png", dpi=300)
 
         self.X_test = np.array(self.X_test)
         self.Y_test = np.array(self.Y_test)
@@ -57,7 +57,7 @@ class Autoencoder(Model):
                 plt.plot(true_Y[:,i+j], label="True", color='blue', alpha=0.5)
         
                 plt.legend()
-                plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png", dpi=300)
+                plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Recon.png", dpi=300)
                 plt.figure()
 
         self.test_loss = np.average(loss, axis=0)[0]
@@ -83,8 +83,8 @@ class Autoencoder(Model):
         self.X_train = self.X_train.reshape(self.X_train.shape[0], self.X_train.shape[-1], 1)
         self.X_val = self.X_val.reshape(self.X_val.shape[0], self.X_val.shape[-1], 1)
         self.X_test = self.X_test.reshape(self.X_test.shape[0], self.X_test.shape[-1], 1)
-        self.input_shape = self.X_train.shape[1:]
-        self.output_shape = self.Y_train.shape[1:]
+        self.in_shape = self.X_train.shape[1:]
+        self.out_shape = self.Y_train.shape[1:]
 
         self.decoder = tf.keras.Sequential([
             layers.Reshape((1, self.latent_dim)),
@@ -99,17 +99,17 @@ class Autoencoder(Model):
             layers.Conv2DTranspose(31, (3,3), strides=5, padding='same', activation='relu'),
             #layers.MaxPooling2D(),
             layers.Dropout(0.25),
-            layers.Reshape(self.output_shape)
+            layers.Reshape(self.out_shape)
         ])
 
         self.encoder = tf.keras.Sequential([
-            layers.Conv1D(self.input_shape[-2]*3//4, 3, strides=2, padding='same', activation='sigmoid'),
+            layers.Conv1D(self.in_shape[-2]*3//4, 3, strides=2, padding='same', activation='sigmoid'),
             layers.MaxPooling1D(),
             layers.Dropout(0.25),
-            layers.Conv1D(self.input_shape[-2]//2, 3, strides=2, padding='same', activation='sigmoid'),
+            layers.Conv1D(self.in_shape[-2]//2, 3, strides=2, padding='same', activation='sigmoid'),
             layers.MaxPooling1D(),
             layers.Dropout(0.25),
-            layers.Conv1D(self.input_shape[-2]//4, 3, strides=2, padding='same', activation='sigmoid'),
+            layers.Conv1D(self.in_shape[-2]//4, 3, strides=2, padding='same', activation='sigmoid'),
             layers.MaxPooling1D(),
             layers.Dropout(0.25),
             layers.Flatten(),
