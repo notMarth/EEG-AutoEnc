@@ -6,7 +6,7 @@ Note that the EEG and audio data are not included in the repo as they are too la
 
 # How to Use:
 ## Required Libraries
-I recommend using the provided conda environment file, but if you would like to install the libraries yourself, the ones needed are as follows:
+I recommend using the provided conda environment file (env.yml), but if you would like to install the libraries yourself, the ones needed are as follows:
   - Numpy
   - Scipy
   - matplotlib
@@ -18,4 +18,3 @@ The following are optional (required for running non-necessary portions of the r
   - mtrf
 ## Run and Compare Models
 To run models, run "python testing_script.py MODEL_NAME [MODEL_NAME...] NUM_EPOCHS"
-
