@@ -6,6 +6,8 @@ import numpy as np
 import etc.helper as helper
 import scipy.signal as sig
 from matplotlib import pyplot as plt
+from IPython import display
+import soundfile as sf
 
 SPEC = 100
 
@@ -63,10 +65,14 @@ class Autoencoder(Model):
 
         plt.plot(true_wave)
         plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_realwave.png")
+        
+        sf.write('ogoutput.flac', true_wave, 1600)
 
         plt.plot(modelYwave)
         plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_wave.png")
         fig, axs = plt.subplots(2,1)
+
+        sf.write('output.flac', modelYwave, 1600)
 
         
         # axs[0].imshow(modelYwave, origin='lower', aspect='auto',
