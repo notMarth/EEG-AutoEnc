@@ -13,7 +13,7 @@ SPEC = 100
 class Autoencoder(Model):
     def __init__(self, latent_dim, train_size=0.7, test_size=0.3, epochs=100, random_state=5):
         super(Autoencoder, self).__init__()
-        self.name = "spectral_model_1"
+        self.model_name = "spectral_model_1"
 
         self.latent_dim = latent_dim
         self.in_shape = ((0,0,0))
@@ -42,7 +42,7 @@ class Autoencoder(Model):
         plt.plot(self.history.history["loss"], label="Training Loss")
         plt.plot(self.history.history["val_loss"], label="Validation Loss")
         plt.legend()
-        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Loss.png", dpi=300)
+        plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Loss.png", dpi=300)
 
         X_test = np.array(self.X_test)
         Y_test = np.array(self.Y_test)
@@ -66,7 +66,7 @@ class Autoencoder(Model):
         # axs[2].plot(true_Y[0], label="True", alpha=0.5, color="Green")
         # axs[2].set_title("True Audio Envelope vs Reconstructed")
         fig.legend()
-        plt.savefig(f"figs/{self.name}/Model_{self.name}_{self.latent_dim}_Recon.png", dpi=300)
+        plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Recon.png", dpi=300)
 
         self.test_loss =  np.average(loss, axis=0)[0]
 
@@ -88,7 +88,7 @@ class Autoencoder(Model):
         self.Y_val = self.Y_val[:,0,:]
 
         window = sig.windows.gaussian(30, std=5, sym=True)
-        spectro = sig.ShortTimeFFT(win=window, hop=19, fs=sample_rate)
+        spectro = sig.ShortTimeFFT(win=window, hop=9, fs=sample_rate)
         self.Y_train = np.abs(spectro.stft(self.Y_train))
         # for i in range(len(self.Y_train)):
         # 	self.Y_train[i] = audio_scaler.fit_transform(self.Y_train[i])

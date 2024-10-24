@@ -100,7 +100,10 @@ if __name__ == "__main__":
         labels.append(model.model_name)
         plt.close()
  
- 
+    plt.figure()
+    plt.plot(audio)
+    plt.savefig("figs/original_wave")
+    print("Audio: ", audio, audio.shape)
     #plot comparison of test loss for every model trained
     plt.figure()
     plt.title(f"Average Model Loss Over Test Data For Each Model (Best)")
@@ -109,5 +112,6 @@ if __name__ == "__main__":
     plt.xlabel("Model Name")
     plt.ylabel("Average MSE")
     plt.savefig("figs/Model_Comparison.png")
+    #plt.show()
     plt.close()
-    
+    # python testing_script.py model1 10
