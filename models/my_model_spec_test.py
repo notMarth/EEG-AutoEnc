@@ -52,7 +52,7 @@ class Autoencoder(Model):
         Y_test = np.array(self.Y_test)
         model_Y1 = np.array(self(self.X_test[test_ind].reshape(1, self.X_test[0].shape[0], self.X_test[0].shape[1]))).reshape(2, self.Y_test.shape[1], self.Y_test.shape[2])
         model_Y = np.abs(model_Y1[0] + (1.j * model_Y1[1]))
-        print("model_y", (model_Y1[0] + (1.j * model_Y1[1])).shape)
+        #print("model_y", (model_Y1[0] + (1.j * model_Y1[1])).shape)
         modelYwave = self.spectro.istft(model_Y1[0] + (1.j * model_Y1[1]))
         true_Y = np.abs(Y_test[test_ind])
         true_wave = self.spectro.istft(Y_test[test_ind])
@@ -70,30 +70,27 @@ class Autoencoder(Model):
 
         plt.plot(modelYwave)
         plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_wave.png")
-        fig, axs = plt.subplots(2,1)
 
         sf.write(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_output.flac", modelYwave, 1600)
 
         
-        # axs[0].imshow(modelYwave, origin='lower', aspect='auto',
-        #     extent=self.spectro.extent(self.out_shape[0]), cmap='inferno')
-        # axs[0].set_title(f"Reconstructed Audio Spectrogram (Latent Space = {self.latent_dim})")
+        fig, axs = plt.subplots(2,1)
+        axs[0].imshow(display_Y, origin='lower', aspect='auto',
+            extent=self.spectro.extent(self.out_shape[0]), cmap='inferno')
+        axs[0].set_title(f"Reconstructed Audio Spectrogram (Latent Space = {self.latent_dim})")
         
-        # axs[1].imshow(true_Y, origin='lower', aspect='auto',
-        #     extent=self.spectro.extent(self.out_shape[0]), cmap='inferno')		
-        # axs[1].set_title("True Audio Spectrogram")
+        axs[1].imshow(true_Y, origin='lower', aspect='auto',
+            extent=self.spectro.extent(self.out_shape[0]), cmap='inferno')		
+        axs[1].set_title("True Audio Spectrogram")
        
         fig.legend()
         
         plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Recon.png", dpi=300)
 
-        # plt.figure()
-        # plt.plot(display_Y)
-        # plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_ReconWave.png")
-        print("display_Y: \n", display_Y)
+        #print("display_Y: \n", display_Y)
 
 
-        # Convert the waveform to a spectrogram via a STFT.
+        """ # Convert the waveform to a spectrogram via a STFT.
         spectrogram = tf.signal.stft(
             true_Y, frame_length=255, frame_step=128)
         # Obtain the magnitude of the STFT.
@@ -102,7 +99,7 @@ class Autoencoder(Model):
         # as image-like input data with convolution layers (which expect
         # shape (`batch_size`, `height`, `width`, `channels`).
         spectrogram = spectrogram[..., tf.newaxis]
-        print('Spectrogram shape:', spectrogram.shape)
+        #print('Spectrogram shape:', spectrogram.shape)"""
         
         self.test_loss =  np.average(loss)
         print(loss)
