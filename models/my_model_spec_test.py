@@ -71,7 +71,7 @@ class Autoencoder(Model):
         plt.plot(modelYwave)
         plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_wave.png")
 
-        sf.write(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_output.flac", modelYwave, 1600)
+        sf.write(f"figs/{self.model_name}/Model_{self.model_name}_output.flac", modelYwave, 1600)
 
         
         fig, axs = plt.subplots(2,1)
