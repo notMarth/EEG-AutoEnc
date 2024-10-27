@@ -28,7 +28,7 @@ def load_audio(filename: str) -> np.ndarray:
 
     return (audio, aud_samp_rate)
 
-def split_events(X, events, sample_rate, bound=(0.1, 0.25)) -> np.ndarray:
+def split_events(X, events, sample_rate, bound=(10, 10)) -> np.ndarray:
     '''Split data based on sample-points. Bound should be a tuple of the bound
     around each event (eg. -100ms before and +250ms after each event should be
     given to the function as (0.1, 0.25)).'''
@@ -36,21 +36,21 @@ def split_events(X, events, sample_rate, bound=(0.1, 0.25)) -> np.ndarray:
     
     #events is a list of sample points
     for event in events:
-        new_X.append(X[:,event - (sample_rate*bound[0]):event + (sample_rate*bound[1])])
+        new_X.append(X[:,event - (int(sample_rate*bound[0])):event + (int(sample_rate*bound[1]))])
 
     return np.array(new_X)
 
 def train_test_val_split(X: np.ndarray, Y: np.ndarray, train_size, test_size, rand) -> tuple:
     '''Takes X and Y data and splits them. Both sets are split identically (that is,
       element 1 of the split X set will correspond to element 1 of the Y set). Assumes
-      all data are the same size. Data is expected to be in the shape (n_samples, ...) and
-      both X and Y have the same number of samples. Outputs 6-tuples'''
-
+      all data are the same size. Data is expected to be in the shape 
+      (n_samples, n_channels, n_sample_points) for eeg and (n_samples, n_audio_channels, n_sample_points)
+      for audio. Both X and Y have the same number of samples. Outputs 6-tuples'''
 
     labels = list(range(len(X)))
     labels_train, labels_test = train_test_split(labels, train_size=train_size, test_size=test_size, random_state=rand)
     labels_test, labels_val = train_test_split(labels_test, train_size=0.5, test_size=0.5, random_state=rand)
-    
+        
     return X[labels_train], Y[labels_train], X[labels_test], Y[labels_test], X[labels_val], Y[labels_val]
 
 

@@ -46,10 +46,11 @@ if __name__ == "__main__":
     sample_rate = 250
 
     #Load data in
-    raw = helper.load_eeg(eeg_file, sample_rate)
+    raw = helper.load_eeg(eeg_file)
     eeg = raw[0].get_data()
     events, event_dict = raw[1:]
     audio, audio_samp = helper.load_audio(audio_file)
+    
     
     #format the saved figures
     plt.gcf().set_size_inches(9, 6)
@@ -77,7 +78,7 @@ if __name__ == "__main__":
             model = model_lib.Autoencoder(latent, TRAIN_SIZE, TEST_SIZE, EPOCHS, RANDOM_STATE)
             Path(f"figs/{model.model_name}").mkdir(parents=True, exist_ok=True)
 
-            model.process_data(deepcopy(eeg), deepcopy(audio), sample_rate)
+            model.process_data(deepcopy(eeg), deepcopy(audio), sample_rate, events)
             model.train()
             model.plot_losses()
             plt.close()
@@ -105,7 +106,6 @@ if __name__ == "__main__":
     #plot comparison of test loss for every model trained
     plt.figure()
     plt.title(f"Average Model Loss Over Test Data For Each Model (Best)")
-    print(labels, best_model_loss)
     plt.scatter(labels, best_model_loss)
     plt.xlabel("Model Name")
     plt.ylabel("Average MSE")
