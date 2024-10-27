@@ -73,26 +73,35 @@ class Autoencoder(Model):
         plt.savefig(f"figs/{self.model_name}/Model_{self.model_name}_{self.latent_dim}_Recon.png", dpi=300)
         
         self.test_loss =  np.average(loss)
-        print(loss)
-        print(self.test_loss)
 
 
-    def process_data(self, eeg, audio, sample_rate, mode, segments, seconds):
+    def process_data(self, eeg, audio, sample_rate, events, event_dict=None):
+        '''process the data before running the model. Requires eeg, audio, and the
+        sample_rate to downsample the audio to.'''
+        
         #calculate spectrogram of average of the two audio channels
         audio = np.atleast_2d(np.average(audio.T, axis=0))
-        audio_scaler = StandardScaler()
+        
+        #downsample audio
+        
+        audio = sig.resample(audio, eeg.shape[1], axis=1)
+        
+        events = events[1:, 0]
+        #split audio and eeg into event segments
+        split_eeg = helper.split_events(eeg, events[1:-1], sample_rate)
+        split_audio = helper.split_events(audio, events[1:-1], sample_rate)
 
         #split data into train, test, validation
         self.X_train, self.Y_train, self.X_test, self.Y_test, self.X_val, self.Y_val = \
-        helper.train_test_val_split(eeg, audio, self.train_size, \
-                            self.test_size, sample_rate, self.random_state, \
-                            mode=mode, num_segments=segments, \
-                            seconds=seconds)
+        helper.train_test_val_split(split_eeg, split_audio, self.train_size, \
+                            self.test_size, self.random_state)
 
         self.Y_train = self.Y_train[:,0,:]
         self.Y_test = self.Y_test[:,0,:]
         self.Y_val = self.Y_val[:,0,:]
-
+        
+        #SPECTROGRAM ACTUALLY GETS CALC'D HERE
+        
         window = sig.windows.gaussian(30, std=5, sym=True)
         spectro = sig.ShortTimeFFT(win=window, hop=19, fs=sample_rate, scale_to='magnitude')
         self.Y_train = spectro.stft(self.Y_train)
@@ -101,6 +110,7 @@ class Autoencoder(Model):
         
         self.Y_val = spectro.stft(self.Y_val)
 
+        #Need this for applying inverse FFT later
         self.spectro = spectro
 
 
@@ -114,6 +124,7 @@ class Autoencoder(Model):
 
         self.Y_val_real = np.real(self.Y_val)
         self.Y_val_imag = np.imag(self.Y_val)
+        
 
         self.encoder_real = tf.keras.Sequential([
             layers.Input(shape=self.in_shape),

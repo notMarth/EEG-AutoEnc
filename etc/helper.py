@@ -1,6 +1,3 @@
-#HELPER FUNCTIONS
-#================
-
 #imports
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -11,107 +8,50 @@ from sklearn.preprocessing import StandardScaler
 import mne
 import numpy as np
 
-""" helper functions for testing_script.py. Used for data modification/
-preprocessing before use.
+"""helper functions for testing_script.py and models. Used for data modification/
+preprocessing before use in models"""
 
-"""
+def load_eeg(filename: str) -> mne.io.Raw:
+    '''Load raw eeg data from file and grab event dictionary. Return data, events,
+    and event labelling as a tuple'''
+    
+    raw = mne.io.read_raw_brainvision(filename, preload=True)
+    events, event_dict = mne.events_from_annotations(raw)
 
-def load_eeg(filename: str, sample_rate: int) -> mne.io.Raw:
-	raw = mne.io.read_raw_brainvision(filename, preload=True)
-	events, event_dict = mne.events_from_annotations(raw)
-	#start of songs in sample numbers
-	song_starts = np.array(events)[events[:,2] == 10001][2:,0]
-	press_starts = []
-	press_starts = events[2:,0]
+    return (raw, events, event_dict)
 
-	return raw
+def load_audio(filename: str) -> np.ndarray:
+    '''Load audio data in. Takes filename for audio file as argument. Return
+    audio and its original sample rate'''
 
-def load_audio(filename: str, sample_rate: int, number_samples: int) -> np.ndarray:
-	
-	scaler = StandardScaler()
+    audio, aud_samp_rate = pyflac.FileDecoder(filename, "temp.wav").process()
 
-	audio, aud_samp_rate = pyflac.FileDecoder(filename, "temp.wav").process()
-	#aud_rate, audio = wav.read("temp.wav")
-	dtype = audio.dtype
+    return (audio, aud_samp_rate)
 
-	#Resample audio to EEG sample rate and get audio envelope
-	return sig.resample(audio, number_samples)
+def split_events(X, events, sample_rate, bound=(10, 10)) -> np.ndarray:
+    '''Split data based on sample-points. Bound should be a tuple of the bound
+    around each event (eg. -100ms before and +250ms after each event should be
+    given to the function as (0.1, 0.25)).'''
+    new_X = []
+    
+    #events is a list of sample points
+    for event in events:
+        new_X.append(X[:,event - (int(sample_rate*bound[0])):event + (int(sample_rate*bound[1]))])
 
+    return np.array(new_X)
 
-def split_events(X, Y, events, sample_rate, bound):
+def train_test_val_split(X: np.ndarray, Y: np.ndarray, train_size, test_size, rand) -> tuple:
+    '''Takes X and Y data and splits them. Both sets are split identically (that is,
+      element 1 of the split X set will correspond to element 1 of the Y set). Assumes
+      all data are the same size. Data is expected to be in the shape 
+      (n_samples, n_channels, n_sample_points) for eeg and (n_samples, n_audio_channels, n_sample_points)
+      for audio. Both X and Y have the same number of samples. Outputs 6-tuples'''
 
-	new_X = []
-	new_Y = []
-
-	for event in events:
-		new_X.append(X[:,event - (sample_rate*bound):event + (sample_rate*bound)])
-		new_Y.append(Y[:,event - (sample_rate*bound):event + (sample_rate*bound)])
-
-	return new_X, new_Y
-
-def train_test_val_split(eeg, audio, train_size, test_size, samp_rate, rand, mode=None, num_segments=1000, seconds=10):
-
-	scaler = StandardScaler()
-
-	split_eeg = eeg
-
-	#split data into num_segments segments
-	times = np.linspace(seconds*samp_rate, eeg.shape[1], num_segments, dtype = int)
-	#each segment has a bound of "seconds" seconds before and after the segment
-	split_audio, split_eeg = split_events(audio, split_eeg, times, samp_rate, seconds)
-
-	labels = [f'song{i}' for i in range(1, len(split_audio))]
-	labels_train, labels_test = train_test_split(labels, train_size=train_size, test_size=test_size, random_state=rand)
-	labels_test, labels_val = train_test_split(labels_test, train_size=0.5, test_size=0.5, random_state=rand)
-
-	#X and Y are dictionaries so that the ordering of the corresponding segments can
-	#be maintained
-	X = {}
-	Y = {}
-	for i in range(1,len(split_audio)):
-		X[f'song{i}'] = split_audio[i]
-
-		Y[f'song{i}'] = split_eeg[i]
-
-	size = Y['song3'].T.shape
-
-	X_test, X_train, X_val, Y_test, Y_train, Y_val = [],[],[],[],[],[]
-
-	for i in labels_train:
-		if(Y[i].T.shape == size):
-			if len(X[i].shape) == 1:
-				Y_train.append(X[i])
-			else:
-				Y_train.append(X[i])
-
-			X_train.append(Y[i].T)
-
-	for i in labels_val:
-		if(Y[i].T.shape == size):
-			if len(X[i].shape) == 1:
-				Y_val.append(X[i])
-			else:
-				Y_val.append(X[i])
-
-			X_val.append(Y[i].T)
-
-	for i in labels_test:
-		if(Y[i].T.shape == size):
-			if len(X[i].shape) == 1:
-				Y_test.append(X[i])
-			else:
-				Y_test.append(X[i])
-				
-			X_test.append(Y[i].T)
-
-	X_train = np.array(X_train)
-	Y_train = np.array(Y_train)
-	X_test = np.array(X_test)
-	Y_test = np.array(Y_test)
-	X_val = np.array(X_val)
-	Y_val = np.array(Y_val)
-
-	return X_train, Y_train, X_test, Y_test, X_val, Y_val
+    labels = list(range(len(X)))
+    labels_train, labels_test = train_test_split(labels, train_size=train_size, test_size=test_size, random_state=rand)
+    labels_test, labels_val = train_test_split(labels_test, train_size=0.5, test_size=0.5, random_state=rand)
+        
+    return X[labels_train], Y[labels_train], X[labels_test], Y[labels_test], X[labels_val], Y[labels_val]
 
 
 
@@ -122,36 +62,22 @@ def train_test_val_split(eeg, audio, train_size, test_size, samp_rate, rand, mod
 #minimum gives the number of sample points to be under this threshold for the
 #current section of the song to be considered the end
 def mask(stimulus, threshold, minimum):
-	n_samples = len(stimulus)
-	song_mask = np.ones(n_samples)
-	min_num = minimum
-	thresh = threshold
-	zeros = 0
-	num=0
-	
-	for sample in range(n_samples):
-		if np.abs(stimulus[sample]) <= thresh:
-			zeros += 1
-			if zeros == min_num:
-				song_mask[sample-min_num-1:n_samples] = np.zeros(n_samples - (sample - min_num-1))
-				zeros=0
-				num+=1
-				break
-		else:
-			zeros = 0
+    n_samples = len(stimulus)
+    song_mask = np.ones(n_samples)
+    min_num = minimum
+    thresh = threshold
+    zeros = 0
+    num=0
+    
+    for sample in range(n_samples):
+        if np.abs(stimulus[sample]) <= thresh:
+            zeros += 1
+            if zeros == min_num:
+                song_mask[sample-min_num-1:n_samples] = np.zeros(n_samples - (sample - min_num-1))
+                zeros=0
+                num+=1
+                break
+        else:
+            zeros = 0
 
-	return song_mask
-
-
-#split input data into epochs
-#give to function as 2d array at the minimum where each column is a sample point
-#benchmarks should be a list of sample points
-def split(data, benchmarks):
-	n_samples = data.shape[-1]
-	songs = []
-	prev = 0
-	for song in benchmarks:
-		songs.append(data[:,prev:song])
-		prev = song
-
-	return songs
+    return song_mask
