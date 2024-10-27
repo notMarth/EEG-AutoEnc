@@ -1,6 +1,3 @@
-#HELPER FUNCTIONS
-#================
-
 #imports
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -11,9 +8,8 @@ from sklearn.preprocessing import StandardScaler
 import mne
 import numpy as np
 
-""" helper functions for testing_script.py. Used for data modification/
-preprocessing before use in models
-"""
+"""helper functions for testing_script.py and models. Used for data modification/
+preprocessing before use in models"""
 
 def load_eeg(filename: str, sample_rate: int) -> mne.io.Raw:
     '''Load raw eeg data from file and grab event dictionary. Return data, events,
@@ -41,24 +37,15 @@ def split_events(X, events, sample_rate, bound=(0.1, 0.25)):
     #events is a list of sample points
     for event in events:
         new_X.append(X[:,event - (sample_rate*bound[0]):event + (sample_rate*bound[1])])
-            
 
     return np.array(new_X)
 
-def train_test_val_split(X, Y, train_size, test_size, samp_rate, rand, mode=None, num_segments=1000, seconds=10):
+def train_test_val_split(X: np.ndarray, Y: np.ndarray, train_size, test_size, rand):
     '''Takes X and Y data and splits them. Both sets are split identically (that is,
       element 1 of the split X set will correspond to element 1 of the Y set). Assumes
       all data are the same size. Data is expected to be in the shape (n_samples, ...) and
       both X and Y have the same number of samples'''
 
-    scaler = StandardScaler()
-
-    #split_eeg = eeg
-
-    # #split data into num_segments segments
-    # times = np.linspace(seconds*samp_rate, eeg.shape[1], num_segments, dtype = int)
-    # #each segment has a bound of "seconds" seconds before and after the segment
-    # split_audio, split_eeg = split_events(audio, split_eeg, times, samp_rate, seconds)
 
     labels = list(range(len(X)))
     labels_train, labels_test = train_test_split(labels, train_size=train_size, test_size=test_size, random_state=rand)
