@@ -36,17 +36,18 @@ def load_audio(filename: str) -> np.ndarray:
 
     return (audio, aud_samp_rate)
 
-
-def split_events(X, Y, events, sample_rate, bound):
-    '''Split data based on sample-points with a symmetric bound around each.'''
+def split_events(X, events, sample_rate, bound=(0.1, 0.25)):
+    '''Split data based on sample-points. Bound should be a tuple of the bound
+    around each event (eg. -100ms before and +250ms after each event should be
+    given to the function as (0.1, 0.25)).'''
     new_X = []
-    new_Y = []
-
+    
+    #events is a list of sample points
     for event in events:
-        new_X.append(X[:,event - (sample_rate*bound):event + (sample_rate*bound)])
-        new_Y.append(Y[:,event - (sample_rate*bound):event + (sample_rate*bound)])
+        new_X.append(X[:,event - (sample_rate*bound[0]):event + (sample_rate*bound[1])])
+            
 
-    return new_X, new_Y
+    return np.array(new_X)
 
 def train_test_val_split(X, Y, train_size, test_size, samp_rate, rand, mode=None, num_segments=1000, seconds=10):
     '''Takes X and Y data and splits them. Both sets are split identically (that is,
