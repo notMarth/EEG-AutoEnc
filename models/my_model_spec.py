@@ -77,21 +77,23 @@ class Autoencoder(Model):
         print(self.test_loss)
 
 
-    def process_data(self, eeg, audio, sample_rate, mode, segments, seconds):
+    def process_data(self, eeg, audio, sample_rate):
+        '''process the data before running the model. Requires eeg, audio, and the
+        sample_rate to downsample the audio to.'''
+        
         #calculate spectrogram of average of the two audio channels
         audio = np.atleast_2d(np.average(audio.T, axis=0))
-        audio_scaler = StandardScaler()
 
         #split data into train, test, validation
         self.X_train, self.Y_train, self.X_test, self.Y_test, self.X_val, self.Y_val = \
         helper.train_test_val_split(eeg, audio, self.train_size, \
-                            self.test_size, sample_rate, self.random_state, \
-                            mode=mode, num_segments=segments, \
-                            seconds=seconds)
+                            self.test_size, self.random_state)
 
         self.Y_train = self.Y_train[:,0,:]
         self.Y_test = self.Y_test[:,0,:]
         self.Y_val = self.Y_val[:,0,:]
+        
+        #SPECTROGRAM ACTUALLY GETS CALC'D HERE
 
         window = sig.windows.gaussian(30, std=5, sym=True)
         spectro = sig.ShortTimeFFT(win=window, hop=19, fs=sample_rate, scale_to='magnitude')
@@ -101,6 +103,7 @@ class Autoencoder(Model):
         
         self.Y_val = spectro.stft(self.Y_val)
 
+        #Need this for applying inverse FFT later
         self.spectro = spectro
 
 

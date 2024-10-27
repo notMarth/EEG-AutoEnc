@@ -11,7 +11,7 @@ import numpy as np
 """helper functions for testing_script.py and models. Used for data modification/
 preprocessing before use in models"""
 
-def load_eeg(filename: str, sample_rate: int) -> mne.io.Raw:
+def load_eeg(filename: str) -> mne.io.Raw:
     '''Load raw eeg data from file and grab event dictionary. Return data, events,
     and event labelling as a tuple'''
     
@@ -28,7 +28,7 @@ def load_audio(filename: str) -> np.ndarray:
 
     return (audio, aud_samp_rate)
 
-def split_events(X, events, sample_rate, bound=(0.1, 0.25)):
+def split_events(X, events, sample_rate, bound=(0.1, 0.25)) -> np.ndarray:
     '''Split data based on sample-points. Bound should be a tuple of the bound
     around each event (eg. -100ms before and +250ms after each event should be
     given to the function as (0.1, 0.25)).'''
@@ -40,11 +40,11 @@ def split_events(X, events, sample_rate, bound=(0.1, 0.25)):
 
     return np.array(new_X)
 
-def train_test_val_split(X: np.ndarray, Y: np.ndarray, train_size, test_size, rand):
+def train_test_val_split(X: np.ndarray, Y: np.ndarray, train_size, test_size, rand) -> tuple:
     '''Takes X and Y data and splits them. Both sets are split identically (that is,
       element 1 of the split X set will correspond to element 1 of the Y set). Assumes
       all data are the same size. Data is expected to be in the shape (n_samples, ...) and
-      both X and Y have the same number of samples'''
+      both X and Y have the same number of samples. Outputs 6-tuples'''
 
 
     labels = list(range(len(X)))
