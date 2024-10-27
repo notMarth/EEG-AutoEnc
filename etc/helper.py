@@ -18,19 +18,15 @@ preprocessing before use in models
 def load_eeg(filename: str, sample_rate: int) -> mne.io.Raw:
     '''Load raw eeg data from file and grab event dictionary. Return data, events,
     and event labelling as a tuple'''
+    
     raw = mne.io.read_raw_brainvision(filename, preload=True)
     events, event_dict = mne.events_from_annotations(raw)
-    #start of songs in sample numbers
-    # song_starts = np.array(events)[events[:,2] == 10001][2:,0]
-    # press_starts = []
-    # press_starts = events[2:,0]
 
     return (raw, events, event_dict)
 
 def load_audio(filename: str) -> np.ndarray:
     '''Load audio data in. Takes filename for audio file as argument. Return
     audio and its original sample rate'''
-    scaler = StandardScaler()
 
     audio, aud_samp_rate = pyflac.FileDecoder(filename, "temp.wav").process()
 
@@ -98,16 +94,3 @@ def mask(stimulus, threshold, minimum):
             zeros = 0
 
     return song_mask
-
-#split input data into epochs
-#give to function as 2d array at the minimum where each column is a sample point
-#benchmarks should be a list of sample points
-def split(data, benchmarks):
-    n_samples = data.shape[-1]
-    songs = []
-    prev = 0
-    for song in benchmarks:
-        songs.append(data[:,prev:song])
-        prev = song
-
-    return songs
